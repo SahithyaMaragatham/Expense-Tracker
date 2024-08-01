@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: black;
+            color: rgb(255, 255, 255);
+            box-sizing: border-box;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .expense-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .expense-form input, .expense-form select, .expense-form button {
+            padding: 10px;
+            font-size: 1em;
+            width: 100%;
+            max-width: 200px;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            max-width: 800px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .btn {
+            color: white;
+            background: linear-gradient(rgb(85, 251, 85), rgb(35, 198, 35), rgb(1, 168, 1));
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .filter-category {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .expense-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            table, th, td {
+                font-size: 0.9em;
+            }
+            .filter-category {
+                flex-direction: column;
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .expense-form input, .expense-form select, .expense-form button {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Expense Tracker</h1>
+    <div class="expense-form">
+        <input type="text" id="expenseName" placeholder="Expense Name">
+        <input type="number" id="expenseAmount" placeholder="Amount">
+        <select id="expenseCategory">
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="date" id="expenseDate">
+        <button class="btn" onclick="addExpense()" style="background-color: green;">Add Expense</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Expense Name</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="expenseTableBody">
+        </tbody>
+    </table>
+    <h2>Total: $<span id="totalAmount">0.00</span></h2>
+    <div class="filter-category">
+        <label for="filterCategory">Filter by Category:</label>
+        <select id="filterCategory" onchange="filterExpenses()">
+            <option value="All">All</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Other">Other</option>
+        </select>
+    </div>
+    <script>
+        let totalAmount = 0;
+        let expenses = [];
+
+        function addExpense() {
+            const expenseName = document.getElementById('expenseName').value;
+            const expenseAmount = parseFloat(document.getElementById('expenseAmount').value);
+            const expenseCategory = document.getElementById('expenseCategory').value;
+            const expenseDate = document.getElementById('expenseDate').value;
+
+            if (expenseName && !isNaN(expenseAmount) && expenseDate) {
+                const expense = {
+                    name: expenseName,
+                    amount: expenseAmount,
+                    category: expenseCategory,
+                    date: expenseDate
+                };
+                expenses.push(expense);
+                renderExpenses();
+                clearForm();
+            } else {
+                alert('Please fill in all fields correctly.');
+            }
+        }
+
+        function editExpense(index) {
+            const expense = expenses[index];
+            document.getElementById('expenseName').value = expense.name;
+            document.getElementById('expenseAmount').value = expense.amount;
+            document.getElementById('expenseCategory').value = expense.category;
+            document.getElementById('expenseDate').value = expense.date;
+            deleteExpense(index);
+        }
+
+        function deleteExpense(index) {
+            const expense = expenses.splice(index, 1)[0];
+            updateTotalAmount(-expense.amount);
+            renderExpenses();
+        }
+
+        function updateTotalAmount(amount) {
+            totalAmount += amount;
+            document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
+        }
+
+        function clearForm() {
+            document.getElementById('expenseName').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseCategory').value = 'Food';
+            document.getElementById('expenseDate').value = '';
+        }
+
+        function renderExpenses() {
+            const tableBody = document.getElementById('expenseTableBody');
+            tableBody.innerHTML = '';
+            expenses.forEach((expense, index) => {
+                const row = tableBody.insertRow();
+                row.insertCell(0).innerText = expense.name;
+                row.insertCell(1).innerText = `$${expense.amount.toFixed(2)}`;
+                row.insertCell(2).innerText = expense.category;
+                row.insertCell(3).innerText = expense.date;
+                const actionCell = row.insertCell(4);
+                const editButton = document.createElement('button');
+                editButton.style.backgroundColor = "green";
+                editButton.innerText = 'Edit';
+                editButton.onclick = () => editExpense(index);
+                const deleteButton = document.createElement('button');
+                deleteButton.style.backgroundColor = "green";
+                deleteButton.innerText = 'Delete';
+                deleteButton.onclick = () => deleteExpense(index);
+                actionCell.appendChild(editButton);
+                actionCell.appendChild(deleteButton);
+            });
+            updateTotal();
+        }
+
+        function updateTotal() {
+            totalAmount = expenses.reduce((total, expense) => total + expense.amount, 0);
+            document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
+        }
+
+        function filterExpenses() {
+            const category = document.getElementById('filterCategory').value;
+            const filteredExpenses = category === 'All' ? expenses : expenses.filter(expense => expense.category === category);
+            renderFilteredExpenses(filteredExpenses);
+        }
+
+        function renderFilteredExpenses(filteredExpenses) {
+            const tableBody = document.getElementById('expenseTableBody');
+            tableBody.innerHTML = '';
+            filteredExpenses.forEach((expense, index) => {
+                const row = tableBody.insertRow();
+                row.insertCell(0).innerText = expense.name;
+                row.insertCell(1).innerText = `$${expense.amount.toFixed(2)}`;
+                row.insertCell(2).innerText = expense.category;
+                row.insertCell(3).innerText = expense.date;
+                const actionCell = row.insertCell(4);
+                const editButton = document.createElement('button');
+                editButton.style.backgroundColor = "green";
+                editButton.innerText = 'Edit';
+                editButton.onclick = () => editExpense(index);
+                const deleteButton = document.createElement('button');
+                deleteButton.style.backgroundColor = "green";
+                deleteButton.innerText = 'Delete';
+                deleteButton.onclick = () => deleteExpense(index);
+                actionCell.appendChild(editButton);
+                actionCell.appendChild(deleteButton);
+            });
+        }
+    </script>
+</body>
+</html>
